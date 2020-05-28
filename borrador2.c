@@ -1,23 +1,3 @@
-le:   Interfaz.c
- * Author: guest-fb9e5db8-04cc-48b3-bfc3-9eec024147ed@transim.com
- *
- * Created on 5/26/2020 12:42:59 PM UTC
- * "Created in MPLAB Xpress"
- */
-
-
-#include <xc.h>
-#include <stdint.h>
-
-#pragma config FOSC = XT        // Oscillator Selection bits (XT oscillator)
-#pragma config WDTE = OFF       // Watchdog Timer Enable bit (WDT disabled)
-#pragma config PWRTE = OFF      // Power-up Timer Enable bit (PWRT disabled)
-#pragma config CP = OFF         // FLASH Program Memory Code Protection bits (Code protection off)
-#pragma config BOREN = OFF      // Brown-out Reset Enable bit (BOR disabled)
-#pragma config LVP = OFF        // Low Voltage In-Circuit Serial Programming Enable bit (RB3 is digital I/O, HV on MCLR must be used for programming)
-#pragma config CPD = OFF        // Data EE Memory Code Protection (Code Protection off)
-#pragma config WRT = ON         // FLASH Program Memory Write Enable (Unprotected program memory may be written to by EECON control)
-
 #define _XTAL_FREQ 8000000
 
 #define LCD_RS PORTCbits.RC1
@@ -27,6 +7,7 @@ le:   Interfaz.c
 #define DHT11_PIN      PORTAbits.RA2
 #define DHT11_PIN_DIR  TRISAbits.TRISA2
 uint8_t Rh_byte1, Rh_byte2, Temp_byte1, Temp_byte2;
+uint8_t temp;
 uint16_t sum, RH, TEMP;
 uint8_t check = 0;
 void Delay_ms(int x);
@@ -431,10 +412,7 @@ void INTERFACE_Datos(void) {
         switch (n) {
             case'1':
                 LCD_Comando(0x01); // Limpiar Display
-                LCD_Comando(0x02);
-                LCD_Cursor(0,2);
-                LCD_EscribirStr("Humedad: 36%");
-                Temperatura();
+                DHT11();
                 Delay_ms(3000);
                 y = 1;
                 break;
@@ -949,7 +927,7 @@ void DHT11_Check_Response (void)  // just ignore this but you have to put it in 
 }
 uint8_t read_data (void)
 {
-	 uint8_t i,j;
+	 int i,j;
 	for (j=0;j<8;j++)
 	{
 		while (DHT11_PIN == 0);   // wait for the pin to go high
@@ -964,9 +942,7 @@ uint8_t read_data (void)
 	return i;
 }
 void DHT11(void){
-    
-    LCD_Comando(0x01);
-    LCD_EscribirStr("Initializing");
+     LCD_EscribirStr("Initializing");
     for (int i=0; i<5; i++)
     {
         __delay_ms (500);
@@ -975,34 +951,31 @@ void DHT11(void){
     }
     __delay_ms (500);
     LCD_Comando(0x01);
-    
-    while (1)
-    {
-        DHT11_Start ();
+   
+    while(1){
+                DHT11_Start ();
 		DHT11_Check_Response();
-        
         // Read 40 bits (5 Bytes) of data
 		Rh_byte1 = read_data ();
 		Rh_byte2 = read_data ();
 		Temp_byte1 = read_data ();
 		Temp_byte2 = read_data ();
 		sum = read_data();
-        
+        temp = (Temp_byte1/10)+48;
         // print on LCD
-        
-        LCD_Cursor(-9, 1);
+        LCD_Cursor(-8,1);
 		LCD_EscribirStr("TEMP:- ");
-		LCD_Escribir((Temp_byte1/10)+48);  // print 2nd digit
-		LCD_Escribir(((Temp_byte1%10))+48);  // print 1st digit
-		LCD_EscribirStr(" C");
 		
-		LCD_Cursor(-9, 2);
-		LCD_EscribirStr("RH:- ");
-		LCD_Escribir((Rh_byte1/10)+48);  // print 2nd digit
-		LCD_Escribir(((Rh_byte1%10))+48);  // print 1st digit
-		LCD_EscribirStr(" %");
-       
+		//LCD_Escribir((Temp_byte1/10)+48);  // print 2nd digit
+		//LCD_Escribir(((Temp_byte1%10))+48);  // print 1st digit
+		LCD_EscribirStr(" C");
+		LCD_Cursor(-9,2);
+		//LCD_EscribirStr("RH:- ");
+		//LCD_Escribir((Rh_byte1/10)+48);  // print 2nd digit
+		//LCD_Escribir(((Rh_byte1%10))+48);  // print 1st digit
+		//LCD_EscribirStr(" %");
         
         __delay_ms (500);
     }
 }
+

@@ -61,6 +61,7 @@ void Visualisar_Config();
 void Temperatura_Humedad();
 void Retardo_1segundos();
 void Humedad();
+void Fotocelda();
 void OpenPersianas();
 void Temperatura();
 void Luz_Natural();
@@ -73,6 +74,7 @@ void AbrirPercianas();
 void AperturaHig();
 void Aperturamedia();
 void Aperturalow();
+void Delay_ms(int x);
 unsigned char n;
 unsigned int Status,Variable,j,l,g;
 unsigned char n = ' ';
@@ -664,7 +666,7 @@ void AperturaDepercians(){
 
 
 }
-void Fotocelda() {
+void Fotocelda(){
 
     n = ' ';
     int valor;
@@ -683,7 +685,7 @@ void Fotocelda() {
             lux1 = ((8 * valor / 1000 - 11600 / 1000) * valor) + 4271;
         }
 
-        LCD_EscribirStr("Flujo luminoso:");
+        LCD_Escribir_Cadena("Flujo luminoso:");
         LCD_Cursor(-15, 2);
 
         if (lux1 < 0) {
@@ -701,7 +703,7 @@ void Fotocelda() {
 
 
         __delay_ms(500);
-        LCD_Comando(0x02);
+         LCD_Cmd(0x01); // Limpiar Display
     }
 }
 
@@ -728,7 +730,7 @@ void Delay_2s(){
 
 }
 void Aperturalow(){
-       LCD_Cmd(0x01); // Limpiar Display
+    LCD_Cmd(0x01); // Limpiar Display
     LCD_Cursor(1,1);
     LCD_Escribir_Cadena("Las apertura es de ");
     LCD_Cursor(-13,2);
@@ -741,7 +743,7 @@ void Aperturamedia(){
     LCD_Cursor(-13,2);
     LCD_Escribir_Cadena("56");
 }
-void Delay_ms(int x) {
+void Delay_ms(int x){
     //__delay_ms(100);
     n = ' ';
     for (int i = 0; i < x; i++) {
@@ -769,7 +771,7 @@ void Timer0Delay(void){     //10ms delay
     INTCONbits.TMR0IF=0;             //Clear Interrupt
    
 }
-void Actuar() {
+//void Actuar() {
   /*  if (DetectorMov() == 1) {
         PORTCbits.RC6 = 1;
     } else {
@@ -781,4 +783,4 @@ void Actuar() {
     }else{
         TRISCbits.TRISC2 = 1; //PWM desactivado
     }*/
-}
+//}

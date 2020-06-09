@@ -27,6 +27,10 @@
 #define DHT11_PIN      PORTAbits.RA2
 #define DHT11_PIN_DIR  TRISAbits.TRISA2
 
+unsigned int Rh_byte1, Rh_byte2, Temp_byte1, Temp_byte2;
+unsigned int sum, RH, TEMP;
+unsigned int check = 0;
+
 void Delay_ms(int x);
 
 void LCD_Escribir(char dato);
@@ -93,9 +97,40 @@ void Manual_Automatico(char x){
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////Libreria DHT11///////////////////////////////////////////
+void DHT11_Start(void)
+{
+	DHT11_PIN_DIR = 0;  // set the pin as output
+	DHT11_PIN = 0;   // pull the pin low
+	__delay_ms (18);  // wait for 18ms
+	DHT11_PIN_DIR = 1;   // set the PIN as input
+}
+
+void DHT11_Check_Response(void)  // just ignore this but you have to put it in the main
+{
+	while(DHT11_PIN); // wait for pin to go low
+    while(!DHT11_PIN); // wait for the pin to go HIGH
+	while(DHT11_PIN); // wait for the pin to go low
+}
+
+unsigned int read_data (void)
+{
+	unsigned int i,j;
+	for (j=0;j<8;j++)
+	{
+		while(DHT11_PIN == 0);   // wait for the pin to go high
+		__delay_us (40);   // wait for 40 us
+		if (DHT11_PIN == 0)   // if the pin is low 
+		{
+			i&= ~(1<<(7-j));   // write 0
+		}
+		else i|= (1<<(7-j));  // if the pin is high, write 1
+		while(DHT11_PIN);  // wait for the pin to go low
+	}
+	return i;
+}
 
 void Temperatura(){
-    int aux1, aux2;
+    /*int aux1, aux2;
     char UTAux = 0;
     n = ' ';
     while (UTAux == 0) {
@@ -135,7 +170,47 @@ void Temperatura(){
                 n = ' ';
                 break;
         }
+    }*/
+    LCD_EscribirStr("Initializing");
+    for(int i=0; i<5; i++)
+    {
+        __delay_ms (500);
+        LCD_EscribirStr('.');
+        
     }
+    __delay_ms (500);
+    LCD_Comando(0x01);// Limpiar LCD 
+    
+    while(1)
+    {
+        DHT11_Start ();
+		DHT11_Check_Response();
+        
+        // Read 40 bits (5 Bytes) of data
+		Rh_byte1 = read_data();
+		Rh_byte2 = read_data();
+		Temp_byte1 = read_data();
+		Temp_byte2 = read_data();
+		sum = read_data();
+        
+        // print on LCD
+        
+        //LCD_Comando(0x80); // Comando
+		LCD_EscribirStr("TEMP:- ");
+		LCD_Escribir((Temp_byte1/10)+48);  // print 2nd digit
+		LCD_Escribir(((Temp_byte1%10))+48);  // print 1st digit
+		lLCD_EscribirStr(" C");
+		
+		LCD_Comando(0xC0);// comando 
+		LCD_EscribirStr("RH:- ");
+		LCD_Escribir((Rh_byte1/10)+48);  // print 2nd digit
+		LCD_Escribir(((Rh_byte1%10))+48);  // print 1st digit
+		LCD_EscribirStr(" %");
+       
+        
+        __delay_ms(500);
+    }
+    return;
 }
 
 void Umbral_Temp(void) {
@@ -222,7 +297,7 @@ void INTERFACE_Manual_Auto(void) {
                 LCD_EscribirStr("AjusteManual");
                 PORTAbits.RA1 = 1;
                 LCD_Cursor(-14, 2);
-                LCD_EscribirStr("1: Alarma 2: Ventilacion");
+                LCD_EscribirStr("1: Alarma 2: Luz ");
                 LCD_Display(26);
                 Manual_Automatico(1);
                 y = 1;
@@ -249,7 +324,7 @@ void INTERFACE_Manual_Auto(void) {
                                         n = ' ';
                                         LCD_Comando(0x01); // Limpiar Display
                                         LCD_EscribirStr("   Alarma On");
-                                        PORTCbits.RC6 = 1; //Salida del pir en 0 logico por defecto
+                                        TRISCbits.RC6 = 0; // entrada del sensor
                                         Delay_ms(3000);
                                         z = 1;
                                         n = ' ';

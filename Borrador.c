@@ -199,7 +199,7 @@ void Temperatura(){
 		LCD_EscribirStr("TEMP:- ");
 		LCD_Escribir((Temp_byte1/10)+48);  // print 2nd digit
 		LCD_Escribir(((Temp_byte1%10))+48);  // print 1st digit
-		lLCD_EscribirStr(" C");
+		LCD_EscribirStr(" C");
 		
 		LCD_Comando(0xC0);// comando 
 		LCD_EscribirStr("RH:- ");
@@ -324,7 +324,7 @@ void INTERFACE_Manual_Auto(void) {
                                         n = ' ';
                                         LCD_Comando(0x01); // Limpiar Display
                                         LCD_EscribirStr("   Alarma On");
-                                        TRISCbits.RC6 = 0; // entrada del sensor
+                                        //TRISCbits.RC6 = 0; // entrada del sensor
                                         Delay_ms(3000);
                                         z = 1;
                                         n = ' ';
